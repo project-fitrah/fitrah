@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+**/node_modules
 /.pnp
 .pnp.js
 
@@ -11,9 +12,11 @@
 # next.js
 /.next/
 /out/
+**/.next
 
 # production
 /build
+dist
 
 # misc
 .DS_Store
@@ -27,6 +30,20 @@ yarn-error.log*
 # local env files
 .env*.local
 .env
+.env.*
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# package managers and monorepo
+pnpm-lock.yaml
+.turbo/
+
+# logs
+*.log
 
 # vercel
 .vercel

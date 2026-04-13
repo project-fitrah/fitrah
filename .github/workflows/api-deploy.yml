@@ -1,0 +1,44 @@
+name: API Deploy (Railway or AWS)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/api/**"
+      - "packages/database/**"
+      - ".github/workflows/api-deploy.yml"
+  pull_request:
+    paths:
+      - "apps/api/**"
+      - "packages/database/**"
+      - ".github/workflows/api-deploy.yml"
+
+jobs:
+  api:
+    name: Validate and Deploy API
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Placeholder API checks
+        run: |
+          echo "API implementation is pending in apps/api."
+          python --version
+
+      - name: Deploy to Railway (optional)
+        if: github.ref == 'refs/heads/main' && secrets.RAILWAY_TOKEN != ''
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          npm i -g @railway/cli
+          railway up --service "$RAILWAY_SERVICE"
+
+      - name: Deploy to AWS (optional)
+        if: github.ref == 'refs/heads/main' && secrets.AWS_ACCESS_KEY_ID != ''
+        run: echo "Hook your AWS deploy command here (ECS/App Runner/Lambda)."
