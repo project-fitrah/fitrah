@@ -15,8 +15,17 @@ export async function proxy(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
   const isApiRoute = pathname.startsWith("/api");
+  const isLoginRoute = pathname === "/login";
 
   if (isApiRoute) {
+    return response;
+  }
+
+  if (isLoginRoute) {
+    if (user) {
+      return redirectWithCookies(request, response, "/recordings");
+    }
+
     return response;
   }
 
