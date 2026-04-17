@@ -1,44 +1,30 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useActionState } from "react";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { signOutAction, signOutInitialState } from "@/app/actions/sign-out";
 
 type SignOutButtonProps = {
   className?: string;
 };
 
 export function SignOutButton({ className }: SignOutButtonProps) {
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
+  const [state, formAction, isPending] = useActionState(signOutAction, signOutInitialState);
 
-  async function handleSignOut() {
-    setIsLoading(true);
-
-    try {
-      const supabase = getSupabaseBrowserClient();
-      if (supabase) {
-        await supabase.auth.signOut();
-      }
-    } finally {
-      router.replace("/login");
-      router.refresh();
-      setIsLoading(false);
+  useEffect(() => {
+    if (state.success) {
+      window.location.replace("/login");
     }
-  }
+  }, [state.success]);
 
   return (
-    <Button
-      type="button"
-      variant="outline"
-      className={className}
-      onClick={handleSignOut}
-      disabled={isLoading}
-    >
-      <LogOut className="mr-2 h-4 w-4" />
-      {isLoading ? "Uitloggen..." : "Uitloggen"}
-    </Button>
+    <form action={formAction}>
+      <Button type="submit" variant="outline" className={className} disabled={isPending}>
+        <LogOut className="mr-2 h-4 w-4" />
+        {isPending ? "Uitloggen..." : "Uitloggen"}
+      </Button>
+      {state.error ? <p className="sr-only">{state.error}</p> : null}
+    </form>
   );
 }
