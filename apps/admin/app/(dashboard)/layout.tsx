@@ -1,7 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Home } from "lucide-react";
-import { isAdminEmail } from "@/lib/auth/admin";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { DashboardNav } from "@/components/dashboard/dashboard-nav";
@@ -21,10 +20,6 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
   if (userResult.error || !userResult.data.user) {
     redirect("/login");
-  }
-
-  if (!isAdminEmail(userResult.data.user.email)) {
-    redirect("/login?error=not-admin");
   }
 
   const userEmail = userResult.data.user.email ?? "Admin user";
