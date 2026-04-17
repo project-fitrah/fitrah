@@ -19,11 +19,19 @@ type RecordingRow = {
   updated_at: string;
 };
 
-type AnthropicResponse = {
-  content?: Array<{
-    type: string;
+type AnthropicStreamEvent = {
+  type?: string;
+  delta?: {
+    type?: string;
     text?: string;
-  }>;
+  };
+  content_block?: {
+    type?: string;
+    text?: string;
+  };
+  error?: {
+    message?: string;
+  };
 };
 
 const SYSTEM_PROMPT = `Je krijgt een ruwe gesproken transcriptie in het Nederlands, mogelijk gemengd met Arabische en Engelse woorden. Voer de volgende taken uit:
@@ -79,12 +87,12 @@ async function getAuthenticatedUserId(request: Request) {
   return { errorResponse: null, userId: userResult.data.user.id };
 }
 
-async function structureWithAI(rawText: string) {
+async function openAnthropicStream(rawText: string) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     return {
       errorResponse: jsonError(503, "AI API key is not configured", "provider_not_configured"),
-      structuredText: "",
+      streamReader: null,
     };
   }
 
@@ -102,6 +110,7 @@ async function structureWithAI(rawText: string) {
         type: "enabled",
         budget_tokens: 1024, // Claude denkt eerst na over welke woorden weg moeten (stopwoorden vs Arabisch)
       },
+      stream: true,
       system: [
         {
           type: "text",
@@ -118,52 +127,119 @@ async function structureWithAI(rawText: string) {
     }),
   });
 
-  const responseText = await anthropicResponse.text();
-
   if (!anthropicResponse.ok) {
+    const responseText = await anthropicResponse.text();
     return {
       errorResponse: jsonError(502, "AI structuring request failed", "upstream_request_failed", {
         upstreamStatus: anthropicResponse.status,
         upstreamBodySnippet: responseText.slice(0, 500),
       }),
-      structuredText: "",
+      streamReader: null,
     };
   }
 
-  let parsed: AnthropicResponse;
-  try {
-    parsed = JSON.parse(responseText) as AnthropicResponse;
-  } catch {
+  if (!anthropicResponse.body) {
     return {
-      errorResponse: jsonError(502, "AI returned invalid JSON", "invalid_upstream_response", {
+      errorResponse: jsonError(502, "AI returned an empty stream", "invalid_upstream_response", {
         upstreamStatus: anthropicResponse.status,
-        upstreamBodySnippet: responseText.slice(0, 500),
       }),
-      structuredText: "",
-    };
-  }
-
-  const structuredText = parsed.content
-    ?.filter((item) => item.type === "text" && typeof item.text === "string")
-    .map((item) => item.text ?? "")
-    .join("\n")
-    .trim();
-
-  if (!structuredText) {
-    return {
-      errorResponse: jsonError(
-        502,
-        "AI response did not include structured text",
-        "invalid_upstream_response"
-      ),
-      structuredText: "",
+      streamReader: null,
     };
   }
 
   return {
     errorResponse: null,
-    structuredText,
+    streamReader: anthropicResponse.body.getReader(),
   };
+}
+
+async function streamAnthropicText(
+  reader: ReadableStreamDefaultReader<Uint8Array>,
+  onChunk: (chunk: string) => Promise<void>
+) {
+  const decoder = new TextDecoder();
+  let buffer = "";
+  const chunks: string[] = [];
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) {
+      break;
+    }
+
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split(/\r?\n/);
+    buffer = lines.pop() ?? "";
+
+    for (const line of lines) {
+      const trimmedLine = line.trim();
+      if (!trimmedLine || !trimmedLine.startsWith("data:")) {
+        continue;
+      }
+
+      const payload = trimmedLine.slice("data:".length).trim();
+      if (!payload || payload === "[DONE]") {
+        continue;
+      }
+
+      let event: AnthropicStreamEvent;
+      try {
+        event = JSON.parse(payload) as AnthropicStreamEvent;
+      } catch {
+        continue;
+      }
+
+      if (event.type === "error") {
+        const upstreamMessage = event.error?.message?.trim() || "Unknown Anthropic stream error";
+        throw new Error(upstreamMessage);
+      }
+
+      const deltaText =
+        typeof event.delta?.text === "string"
+          ? event.delta.text
+          : typeof event.content_block?.text === "string"
+            ? event.content_block.text
+            : "";
+
+      if (!deltaText) {
+        continue;
+      }
+
+      chunks.push(deltaText);
+      await onChunk(deltaText);
+    }
+  }
+
+  const remaining = buffer.trim();
+  if (remaining.startsWith("data:")) {
+    const payload = remaining.slice("data:".length).trim();
+    if (payload && payload !== "[DONE]") {
+      try {
+        const event = JSON.parse(payload) as AnthropicStreamEvent;
+        const deltaText =
+          typeof event.delta?.text === "string"
+            ? event.delta.text
+            : typeof event.content_block?.text === "string"
+              ? event.content_block.text
+              : "";
+
+        if (deltaText) {
+          chunks.push(deltaText);
+          await onChunk(deltaText);
+        }
+      } catch {
+        // Ignore malformed trailing payload.
+      }
+    }
+  }
+
+  const structuredText = chunks.join("").trim();
+
+  if (!structuredText) {
+    throw new Error("AI response did not include structured text");
+  }
+
+  return structuredText;
 }
 
 type RouteContext = {
@@ -210,31 +286,52 @@ export async function POST(request: Request, context: RouteContext) {
     return jsonError(400, "Recording raw_text is empty", "validation_failed");
   }
 
-  const aiResult = await structureWithAI(recording.raw_text);
-  if (aiResult.errorResponse) {
-    return aiResult.errorResponse;
-  }
-
-  const updateResult = await serviceClient
-    .from("recordings")
-    .update({
-      structured_text: aiResult.structuredText,
-      status: "done",
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", recording.id)
-    .eq("user_id", auth.userId)
-    .select("id, user_id, raw_text, structured_text, status, created_at, updated_at")
-    .single();
-
-  if (updateResult.error) {
-    return jsonError(
-      500,
-      "Failed to update recording",
-      "database_update_failed",
-      updateResult.error.message
+  const anthropic = await openAnthropicStream(recording.raw_text);
+  if (anthropic.errorResponse || !anthropic.streamReader) {
+    return (
+      anthropic.errorResponse ??
+      jsonError(502, "AI stream unavailable", "invalid_upstream_response")
     );
   }
 
-  return NextResponse.json(updateResult.data as RecordingRow);
+  const stream = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      const encoder = new TextEncoder();
+
+      try {
+        const structuredText = await streamAnthropicText(anthropic.streamReader, async (chunk) => {
+          controller.enqueue(encoder.encode(chunk));
+        });
+
+        const updateResult = await serviceClient
+          .from("recordings")
+          .update({
+            structured_text: structuredText,
+            status: "done",
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", recording.id)
+          .eq("user_id", auth.userId)
+          .select("id")
+          .single();
+
+        if (updateResult.error) {
+          throw new Error("Failed to persist structured recording");
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Structuring stream failed";
+        controller.enqueue(encoder.encode(`\n\n[ERROR] ${message}`));
+      } finally {
+        controller.close();
+      }
+    },
+  });
+
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "text/plain; charset=utf-8",
+      "Cache-Control": "no-cache, no-transform",
+      "X-Content-Type-Options": "nosniff",
+    },
+  });
 }

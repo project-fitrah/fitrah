@@ -198,6 +198,17 @@ export function Recorder() {
 
   const canSave = combinedTranscript.trim().length > 0 && !isSaving;
   const canStructure = Boolean(savedRecording) && !isStructuring;
+  const renderedStructuredHtml = useMemo(() => {
+    if (!structuredHtml) {
+      return "";
+    }
+
+    if (!isStructuring) {
+      return structuredHtml;
+    }
+
+    return `${structuredHtml}\n<p><span class="inline-block animate-pulse text-amber-300" aria-hidden="true">|</span></p>`;
+  }, [isStructuring, structuredHtml]);
 
   const statusConfig = useMemo(() => {
     if (phase === "recording") {
@@ -513,23 +524,69 @@ export function Recorder() {
         headers,
       });
 
-      const payload = (await response.json()) as unknown;
-
       if (!response.ok) {
+        const payload = (await response.json()) as unknown;
         const apiError = extractApiError(payload);
         throw new Error(apiError?.error ?? "Structureren mislukt.");
       }
 
-      if (!isRecording(payload)) {
-        throw new Error("Structureren gelukt, maar response heeft een onverwacht formaat.");
+      if (!response.body) {
+        throw new Error("Structureren gelukt, maar stream ontbreekt.");
       }
 
-      const recording = payload;
-      const markdown = recording.structured_text?.trim() || recording.raw_text.trim();
-      setSavedRecording(recording);
-      setFinalText(markdown);
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let streamedMarkdown = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+          break;
+        }
+
+        const chunk = decoder.decode(value, { stream: true });
+        if (!chunk) {
+          continue;
+        }
+
+        streamedMarkdown += chunk;
+        const cleanedMarkdown = streamedMarkdown.trim();
+        setFinalText(cleanedMarkdown);
+        setInterimText("");
+        setStructuredHtml(cleanedMarkdown ? renderSimpleMarkdown(cleanedMarkdown) : "");
+      }
+
+      streamedMarkdown += decoder.decode();
+      const finalMarkdown = streamedMarkdown.trim();
+
+      if (!finalMarkdown) {
+        throw new Error("Structureren gaf geen tekst terug.");
+      }
+
+      if (finalMarkdown.includes("[ERROR]")) {
+        const errorLine = finalMarkdown
+          .split(/\r?\n/)
+          .find((line) => line.includes("[ERROR]"))
+          ?.replace("[ERROR]", "")
+          .trim();
+        throw new Error(errorLine || "Structureren is onderbroken.");
+      }
+
+      setSavedRecording((current) => {
+        if (!current) {
+          return current;
+        }
+
+        return {
+          ...current,
+          structured_text: finalMarkdown,
+          status: "done",
+          updated_at: new Date().toISOString(),
+        };
+      });
+      setFinalText(finalMarkdown);
       setInterimText("");
-      setStructuredHtml(renderSimpleMarkdown(markdown));
+      setStructuredHtml(renderSimpleMarkdown(finalMarkdown));
       setNotice({ kind: "success", message: "Transcriptie is gestructureerd." });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Structureren mislukt.";
@@ -552,7 +609,7 @@ export function Recorder() {
           </span>
           <div
             className="prose prose-invert max-w-none [&_h1]:text-2xl [&_h2]:mt-4 [&_h2]:text-xl [&_h3]:mt-3 [&_h3]:text-lg [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-2 [&_ul]:list-disc [&_ul]:pl-6"
-            dangerouslySetInnerHTML={{ __html: structuredHtml }}
+            dangerouslySetInnerHTML={{ __html: renderedStructuredHtml }}
           />
         </div>
       ) : (

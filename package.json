@@ -15,7 +15,7 @@
     "build:admin": "pnpm --filter @fitrah/admin build"
   },
   "devDependencies": {
-    "prettier": "^3.4.2",
-    "turbo": "^2.3.3"
+    "prettier": "^3.8.3",
+    "turbo": "^2.9.6"
   }
 }
