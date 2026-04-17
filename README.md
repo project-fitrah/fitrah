@@ -35,9 +35,12 @@ Interactive spiritual journey platform powered by AI-guided logical reasoning.
 
 	```bash
 	cd apps/backend
-	python -m venv .venv
-	source .venv/bin/activate
-	pip install -e '.[dev]'
-	python -m app
+	uv sync --extra dev
+	uv run python -m app
 	```
+
+## Deployment
+
+- `apps/web` and `apps/admin`: deploy to Vercel.
+- `apps/backend`: deploy to Railway using the root `railway.toml` and `apps/backend/Dockerfile`.
 

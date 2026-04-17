@@ -13,8 +13,8 @@
     "build:web": "pnpm --filter @fitrah/web build",
     "dev:admin": "pnpm --filter @fitrah/admin dev",
     "build:admin": "pnpm --filter @fitrah/admin build",
-    "dev:backend": "cd apps/backend && python -m app",
-    "test:backend": "cd apps/backend && pytest"
+    "dev:backend": "uv run --directory apps/backend python -m app",
+    "test:backend": "uv run --directory apps/backend --extra dev pytest"
   },
   "devDependencies": {
     "prettier": "^3.8.3",
