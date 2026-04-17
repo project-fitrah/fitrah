@@ -10,7 +10,9 @@
     "typecheck": "turbo typecheck",
     "format": "prettier --write .",
     "dev:web": "pnpm --filter @fitrah/web dev",
-    "build:web": "pnpm --filter @fitrah/web build"
+    "build:web": "pnpm --filter @fitrah/web build",
+    "dev:admin": "pnpm --filter @fitrah/admin dev",
+    "build:admin": "pnpm --filter @fitrah/admin build"
   },
   "devDependencies": {
     "prettier": "^3.4.2",

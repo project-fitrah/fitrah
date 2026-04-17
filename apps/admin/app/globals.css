@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+:root {
+  --background: #050814;
+  --foreground: #e6ecff;
+  --muted: #111a2e;
+  --border: #24314f;
+  --card: #0c1427;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  background: #070b16;
+  color: var(--foreground);
+}
+
+@layer utilities {
+  .safe-pb {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 1rem);
+  }
+
+  .safe-bottom {
+    bottom: env(safe-area-inset-bottom);
+  }
+
+  .record-wave {
+    animation: wave 1s ease-in-out infinite;
+  }
+}
+
+@keyframes wave {
+  0%,
+  100% {
+    transform: scaleY(0.4);
+    opacity: 0.55;
+  }
+  50% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}

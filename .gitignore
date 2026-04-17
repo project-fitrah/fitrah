@@ -39,7 +39,6 @@ __pycache__/
 venv/
 
 # package managers and monorepo
-pnpm-lock.yaml
 .turbo/
 
 # logs
