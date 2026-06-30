@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { buildDialogueView } from "@/lib/dialogue-chunks";
 
 export type JoePose = "idle" | "talking";
 
@@ -8,22 +9,48 @@ type JoeChatState = {
   input: string;
   lastPrompt: string;
   responseText: string;
+  dialogueIndex: number;
   status: ChatStatus;
   error: string | null;
   setInput: (input: string) => void;
+  advanceDialogue: () => void;
   submitPrompt: () => Promise<void>;
 };
 
-export const selectJoePose = (state: JoeChatState): JoePose =>
-  state.status === "streaming" ? "talking" : "idle";
+export const selectJoePose = (state: JoeChatState): JoePose => {
+  if (state.status === "streaming") {
+    return "talking";
+  }
+
+  if (!state.responseText.trim()) {
+    return "idle";
+  }
+
+  const dialogue = buildDialogueView(state.responseText, state.dialogueIndex, 2);
+
+  if (dialogue.canAdvance) {
+    return "talking";
+  }
+
+  return "idle";
+};
 
 export const useJoeChatStore = create<JoeChatState>((set, get) => ({
   input: "",
   lastPrompt: "",
   responseText: "",
+  dialogueIndex: 0,
   status: "idle",
   error: null,
   setInput: (input) => set({ input }),
+  advanceDialogue: () => {
+    const { responseText, dialogueIndex } = get();
+    const dialogue = buildDialogueView(responseText, dialogueIndex, 2);
+
+    if (dialogue.canAdvance) {
+      set({ dialogueIndex: dialogueIndex + 1 });
+    }
+  },
   submitPrompt: async () => {
     const prompt = get().input.trim();
 
@@ -35,6 +62,7 @@ export const useJoeChatStore = create<JoeChatState>((set, get) => ({
       input: "",
       lastPrompt: prompt,
       responseText: "",
+      dialogueIndex: 0,
       status: "streaming",
       error: null
     });

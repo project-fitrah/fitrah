@@ -1,11 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { ChatInterface } from "@/components/chat-interface";
 import { EnterTransition } from "@/components/enter-transition";
 import { LandingPage } from "@/components/landing-page";
+import { WorldExperience } from "@/components/world-experience";
 
-type ViewPhase = "landing" | "transitioning" | "chat";
+type ViewPhase = "landing" | "transitioning" | "world";
 
 const TRANSITION_MS = 1100;
 
@@ -26,7 +26,7 @@ export default function HomePage() {
     }
 
     const timer = window.setTimeout(() => {
-      setPhase("chat");
+      setPhase("world");
     }, TRANSITION_MS);
 
     return () => window.clearTimeout(timer);
@@ -34,15 +34,15 @@ export default function HomePage() {
 
   return (
     <>
-      {phase !== "chat" ? <LandingPage onEnter={handleEnter} isExiting={phase === "transitioning"} /> : null}
+      {phase !== "world" && <LandingPage onEnter={handleEnter} isExiting={phase === "transitioning"} />}
 
       <EnterTransition active={phase === "transitioning"} />
 
-      {phase === "chat" ? (
-        <div className="chat-enter">
-          <ChatInterface />
+      {phase === "world" && (
+        <div className="world-enter">
+          <WorldExperience />
         </div>
-      ) : null}
+      )}
     </>
   );
 }
