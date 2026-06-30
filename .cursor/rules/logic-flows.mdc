@@ -1,0 +1,14 @@
+---
+description: Logic flow and dawah content guidance
+globs: docs/logic_flows/**/*.md
+alwaysApply: false
+---
+
+# Logic Flows
+
+- `docs/logic_flows` is the durable source for scholar-authored reasoning, dawah methodology and AI response guidance.
+- Keep religious reasoning, tone guidance and reusable prompt context in Markdown here instead of hardcoding it into UI components.
+- Preserve original meaning and cite supporting references when content introduces claims.
+- Structure files so agents can retrieve context predictably: premises, progression, common objections, supporting references and tone guidance.
+- Avoid mixing temporary product copy with long-lived methodology.
+- When app prompts depend on this content, keep the dependency clear in code comments or naming.

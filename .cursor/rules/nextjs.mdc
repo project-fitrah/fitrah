@@ -1,0 +1,15 @@
+---
+description: Next.js app guidance for web and admin
+globs: apps/web/**/*.{ts,tsx},apps/admin/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Next.js Apps
+
+- Both frontend apps use Next.js 16 App Router, React 19, TypeScript strict mode and Tailwind CSS 4.
+- Use `@/*` imports inside each app according to its local `tsconfig.json`.
+- Keep browser state and event handlers in client components marked with `"use client"`.
+- Keep secrets, service-role clients and provider API calls in route handlers or server-only utilities.
+- Preserve streaming response behavior in `apps/web/app/api/chat/route.ts` and admin AI structuring routes unless the task explicitly changes it.
+- In `apps/admin`, reuse existing Supabase helpers under `lib/supabase` and `utils/supabase`; do not introduce parallel auth/session patterns.
+- Validate with `pnpm --filter @fitrah/web lint`, `pnpm --filter @fitrah/admin lint`, app-specific `typecheck`, or root `pnpm lint` and `pnpm typecheck`.

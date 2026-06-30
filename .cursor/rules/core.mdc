@@ -1,0 +1,14 @@
+---
+description: Core Fitrah monorepo guidance for AI agents
+alwaysApply: true
+---
+
+# Core Fitrah Guidance
+
+- Use `AGENTS.md` as the first source for repo workflow, commands, generated folders and security boundaries.
+- This monorepo uses `pnpm` and Turbo for `apps/web` and `apps/admin`; use `uv` for `apps/backend`.
+- Keep edits scoped to the relevant app/package. Do not change shared config, database migrations or deployment files unless the task needs it.
+- Do not edit generated output or caches: `.next/**`, `dist/**`, `build/**`, `.turbo/**`, `node_modules/**`, `.venv/**`, `__pycache__/**`, `*.tsbuildinfo`, `next-env.d.ts`.
+- Never commit `.env`, API keys, Supabase service-role keys, Anthropic keys or Deepgram keys.
+- For chat, prompt, reasoning, dawah or AI content changes, read `docs/logic_flows/README.md` before editing.
+- Prefer targeted validation: `pnpm lint`, `pnpm typecheck`, `pnpm test:backend`, or narrower app/package commands when appropriate.

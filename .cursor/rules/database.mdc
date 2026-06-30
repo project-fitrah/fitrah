@@ -1,0 +1,14 @@
+---
+description: Supabase database migration guidance
+globs: packages/database/**/*.sql
+alwaysApply: false
+---
+
+# Database
+
+- `packages/database` contains Supabase/PostgreSQL migrations and is not a pnpm workspace package.
+- Make schema changes as new SQL migrations under `packages/database/supabase/migrations/`; do not edit historical migrations unless explicitly asked.
+- Keep row level security explicit for user-owned data.
+- When adding tables that reference users, model ownership deliberately and include policies in the same migration.
+- Treat recordings, transcripts and structured AI outputs as sensitive data.
+- Coordinate app code changes with migration changes so column names, status values and access policies stay aligned.

@@ -1,0 +1,14 @@
+---
+description: FastAPI backend guidance
+globs: apps/backend/**/*.py,apps/backend/**/*.toml
+alwaysApply: false
+---
+
+# Backend
+
+- `apps/backend` is a Python 3.11+ FastAPI service managed with `uv`.
+- Keep the app factory pattern in `app/main.py`; avoid adding global side effects during import.
+- Put configuration in `app/config.py` and read runtime values from environment-backed settings.
+- Add focused tests under `apps/backend/tests` for behavior changes.
+- Run backend commands from the repo root with `pnpm dev:backend` or `pnpm test:backend`, or from `apps/backend` with `uv run python -m app` and `uv run --extra dev pytest`.
+- Do not commit local virtualenvs, caches or `.env` files.
