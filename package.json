@@ -2,7 +2,7 @@
   "name": "fitrah",
   "private": true,
   "version": "0.1.0",
-  "packageManager": "pnpm@10.8.0",
+  "packageManager": "pnpm@11.9.0",
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
