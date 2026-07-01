@@ -17,6 +17,14 @@ def create_app() -> FastAPI:
 			"service": settings.app_name,
 			"version": settings.app_version,
 		}
+	
+	@app.get("/health")
+	def health() -> dict[str, str]:
+		return {
+			"status": "ok",
+			"service": settings.app_name,
+			"version": settings.app_version,
+		}
 
 	return app
 
