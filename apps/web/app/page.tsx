@@ -27,7 +27,6 @@ export default function HomePage() {
 
     const timer = window.setTimeout(() => {
       setPhase("world");
-      console.log("test");
     }, TRANSITION_MS);
 
     return () => window.clearTimeout(timer);
