@@ -4,11 +4,13 @@ from fastapi import FastAPI
 
 from app.config import settings
 from app.api.routes_query import router as query_router
+from app.api.routes_phases import router as phases_router
 
 logging.basicConfig(
 	level=logging.INFO if not settings.debug else logging.DEBUG,
 	format="%(asctime)s %(levelname)s %(name)s: %(message)s",
 )
+
 
 def create_app() -> FastAPI:
 	app = FastAPI(
@@ -18,6 +20,7 @@ def create_app() -> FastAPI:
 	)
 
 	app.include_router(query_router)
+	app.include_router(phases_router)
 
 	@app.get("/health", tags=["meta"])
 	def health_check() -> dict[str, str]:
