@@ -21,6 +21,11 @@ dist
 # misc
 .DS_Store
 *.pem
+.idea/
+
+.cursor/                   # Ignore all personal logs, caches, and states
+!.cursor/rules/            # DO NOT ignore project-wide custom AI instructions (.mdc files)
+!.cursor/commands/        # DO NOT ignore shared custom terminal commands
 
 # debug
 npm-debug.log*
