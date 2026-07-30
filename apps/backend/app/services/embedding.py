@@ -2,7 +2,7 @@ import logging
 
 from openai import APIError, APITimeoutError, RateLimitError
 
-from app.clients import openai_client
+from app.clients import embedding_client
 from app.services.exceptions import EmbeddingError
 
 logger = logging.getLogger(__name__)
@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 async def embed_text(text: str) -> list[float]:
 	try:
-		response = await openai_client.embeddings.create(
+		response = await embedding_client.embeddings.create(
 			model="text-embedding-3-small",
 			input=text,
 		)

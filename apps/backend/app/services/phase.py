@@ -1,6 +1,6 @@
 import json
 
-from app.clients import anthropic_client
+from app.clients import llm
 from app.services.phase_config import get_phase_by_name, get_next_phase
 
 
@@ -13,10 +13,9 @@ async def evaluate_phase_gate(
 	current_phase = await get_phase_by_name(current_phase_name)
 	history_text = "\n".join(f"{m['role']}: {m['content']}" for m in conversation_history[-8:])
 
-	response = await anthropic_client.messages.create(
-		model="claude-sonnet-4-6",
+	response_text = await llm.generate(
 		max_tokens=150,
-		system=(
+		system_prompt=(
 			f"Je beoordeelt of een gesprek klaar is om van fase '{current_phase_name}' naar de volgende te gaan.\n"
 			f"Vereisten voor deze fase: {current_phase['criteria']}\n"
 			f"Aantal beurten al in deze fase: {turns_in_phase}\n"
@@ -26,7 +25,7 @@ async def evaluate_phase_gate(
 		messages=[{"role": "user", "content": f"{history_text}\nuser: {latest_message}"}],
 	)
 
-	result = json.loads(response.content[0].text.strip())
+	result = json.loads(response_text.strip())
 	next_phase_name = current_phase_name
 
 	if result["requirement_behaald"]:

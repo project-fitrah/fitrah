@@ -1,6 +1,5 @@
-from anthropic import APIError, APITimeoutError, RateLimitError
-
-from app.clients import anthropic_client
+from app.clients import llm
+from app.llm.exceptions import LLMError, LLMRateLimitError, LLMTimeoutError
 from app.services.embedding import embed_text
 from app.services.retrieval import retrieve_matches
 from app.services.phase import evaluate_phase_gate
@@ -59,16 +58,13 @@ async def answer_question(question: str, conversation_id) -> dict:
 	)
 
 	try:
-		response = await anthropic_client.messages.create(
-			model="claude-sonnet-4-6",
-			max_tokens=500,
-			system=system_prompt,
+		answer_text = await llm.generate(
+			system_prompt=system_prompt,
 			messages=history + [{"role": "user", "content": question}],
+			max_tokens=500,
 		)
-	except (RateLimitError, APITimeoutError, APIError) as exc:
+	except (LLMRateLimitError, LLMTimeoutError, LLMError) as exc:
 		raise GenerationError("LLM service faalde.") from exc
-
-	answer_text = response.content[0].text
 
 	await save_message(conv_id, "user", question, new_phase_name)
 	await save_message(conv_id, "assistant", answer_text, new_phase_name)
