@@ -1,6 +1,6 @@
 # 05 — Experience (web)
 
-`apps/web`: the public site. All user-facing text is Dutch (OPEN C6 for other languages).
+The public site, in the single Next.js app (`08-architecture.md`). All user-facing text is Dutch (OPEN C6 for other languages).
 
 ## Flow
 1. **Landing**: a short invitation, honest about what this is (an AI guide built on the knowledge of an imam). Optionally an entry question, or a landing page per question that opens the conversation at the right entry.
@@ -11,7 +11,7 @@
 6. **End**: a warm close and the handoff (OPEN C5): a contact with the imam or a mosque, resources, the option to come back.
 
 ## Chat
-- Streaming replies (SSE from the backend). The existing dialogue chunking and zustand store in `apps/web` (`stores/joe-chat-store.ts`, `lib/dialogue-chunks.ts`) are the starting point. `/api/chat` is replaced by a call to the backend.
+- Streaming replies from `/api/conversations/[id]/messages`. The existing dialogue chunking and zustand store (`apps/web/stores/joe-chat-store.ts`, `apps/web/lib/dialogue-chunks.ts`) are the starting point. The placeholder `/api/chat` is removed.
 - A subtle progress indicator per chapter (no score, no "conversion bar").
 - Always visible: who/what is talking (an AI), a way to stop, and a link to privacy.
 

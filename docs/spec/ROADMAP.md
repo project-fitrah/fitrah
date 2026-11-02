@@ -2,14 +2,18 @@
 
 The engine is the product, so it comes first. 3D comes deliberately late. Each milestone has acceptance criteria; the referenced spec files hold the details.
 
-## M0 — Cleanup and foundations
-- Merge `RAG` into `main`; delete the `dashboard`, `dev` and `llm-provider` branches.
-- Capture the existing Supabase schema and RPCs as migrations.
-- Replace the LLM layer with one OpenRouter client, with the model per role in config; embeddings through OpenRouter.
-- Fix stale docs: `railway.toml` reference, `.env.example` vs `.example.env`, `AGENTS.md` backend section.
+## M0 — One app, one language
+- Delete the stale branches (`RAG`, `dashboard`, `dev`, `llm-provider`) and close PR #6.
+- Merge `apps/web` and `apps/admin` into one Next.js app at the repo root; admin under `/admin` behind a role check; one set of Supabase helpers. Remove Turbo and `packages/config` if nothing else uses it.
+- Remove `apps/backend` (FastAPI). Keep its seed content as a reference for M1.
+- Supabase CLI: `supabase/` with migrations (starting with the existing `recordings` table), local dev, generated types.
+- Model access: Vercel AI SDK with the OpenRouter provider; model per role in config.
+- Tooling: Vitest, Playwright, GitHub Actions (lint, typecheck, test).
+- Docs: a short `AGENTS.md` pointing to `docs/spec`, `CLAUDE.md` importing it; update the README; remove `.cursor/rules` unless the team uses Cursor.
+- Railway deploy of the single app, with `/api/health`.
 
-Done when: a fresh Supabase project can be set up from migrations; the backend runs against OpenRouter; tests pass.
-Needs first: T16 (embedding model), T1 (which Supabase project).
+Done when: `supabase db reset` and `pnpm dev` give a working site and admin locally; `pnpm lint && pnpm typecheck && pnpm test` pass in CI; the app is live on Railway.
+Needs first: T16 (embedding model), T1 (which Supabase project), T2 (confirm Railway).
 
 ## M1 — Capture one stage of the imam's structure
 - Workshop with the imam and recordings (`03-knowledge-base.md`).
@@ -27,7 +31,7 @@ Needs first: C1–C5.
 Done when: the M1 stage can be completed via the API by the agnostic persona; jailbreak, crisis and minor personas behave as specified; no invented sources.
 
 ## M3 — Web chat and accounts
-- `apps/web` talks to the backend with SSE streaming; text-only mode.
+- The site's chat talks to the engine's API with streaming; text-only mode.
 - Anonymous sessions, consent, linking to an account, resume and delete (`06-accounts-privacy.md`).
 - Rate limiting and budget caps.
 
@@ -59,6 +63,7 @@ Done when: completing a stage moves the user to the next place on desktop and mi
 |---|---|---|---|
 | T16 | Embedding model | M0 | `08`, `02` |
 | T1 | Real Supabase project, dev/prod split | M0 | `08` |
+| T2 | Confirm Railway; preview environments | M0 | `08` |
 | C1 | The imam's structure (points, dependencies) | M1 | `01`, `03` |
 | C2 | What counts as agreement | M1 | `01` |
 | C3 | Handling firm disagreement | M1 | `01` |
@@ -68,7 +73,6 @@ Done when: completing a stage moves the user to the next place on desktop and mi
 | C9 | Minors and vulnerable users | M2 | `02`, `06` |
 | C6 | Language(s) | M2 | `03`, `05` |
 | T4 | Budget and cost per conversation; Jev access | M2 | `02`, `08` |
-| T2 | Hosting of web/admin, backend deploy | M3 | `08` |
 | T10 | Data residency, legal review | M3 | `06` |
 | C10 | Space for off-topic questions | M2 | `02` |
 | C11 | What defines a "good" answer | M5 | `04` |

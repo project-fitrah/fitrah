@@ -18,7 +18,7 @@ Objections, example pairs and sources are embedded for vector search.
 The biggest gap in the project is that the structure isn't captured yet (OPEN C1). Proposed process, using what already exists:
 
 1. **Workshop** with the imam: walk through 3–5 real conversations he remembers. Draw the points and their order on paper.
-2. **Recordings**: the imam records explanations and answers with the existing admin recorder (Deepgram transcription → Claude structuring into Markdown, `apps/admin/app/api/recordings`).
+2. **Recordings**: the imam records explanations and answers with the existing admin recorder (Deepgram transcription → Claude structuring into Markdown, currently `apps/admin/app/api/recordings`, moving to the single app's admin).
 3. **AI proposes**: from a structured transcript, an AI drafts points, objections and example pairs.
 4. **Editor approves**: nothing reaches the live KB without approval by the imam or an assigned editor.
 5. Start with **one stage**, run evals, then expand.

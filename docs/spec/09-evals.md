@@ -1,6 +1,6 @@
 # 09 — Evals
 
-Without evals, nobody (human or Claude Code) can tell whether a change makes the guide better or worse. The eval harness lives in `apps/backend` and runs with pytest (unit level) plus a separate command for conversation evals.
+Without evals, nobody (human or Claude Code) can tell whether a change makes the guide better or worse. Unit tests run with Vitest; tracker and conversation evals live in `evals/` and run with a separate command (`pnpm evals`). Browser flows are covered by Playwright.
 
 ## Levels
 1. **Unit tests** (fast, no model calls): director mode selection, available points and stage completion, graph cycle check, tracker schema validation and fallback.
@@ -35,6 +35,6 @@ Without evals, nobody (human or Claude Code) can tell whether a change makes the
 - Store results per run, so regressions are visible.
 
 ## Acceptance criteria
-- `uv run --extra dev pytest` covers the unit level.
+- `pnpm test` covers the unit level and runs in CI.
 - One command runs the conversation evals and writes a report.
 - The invented-source check is fully automatic.

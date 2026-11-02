@@ -1,6 +1,6 @@
 # 07 — Admin
 
-`apps/admin`: the internal dashboard. It already has Supabase login, the recordings pipeline, and empty stubs for analytics, scholars and settings.
+The internal dashboard, under `/admin` in the single Next.js app, behind a role check. Today's `apps/admin` already has Supabase login, the recordings pipeline, and empty stubs for analytics, scholars and settings.
 
 ## Roles
 | Role | Can |
@@ -41,7 +41,7 @@ Visits, sources (referrers, landing pages), devices; 3D vs text-only usage.
 Models per role, limits (turns per route, off-topic turns), budget caps, retention period.
 
 ## Analytics events
-Stored in Supabase (a single `events` table), written by the backend.
+Stored in Supabase (a single `events` table), written by the engine's route handlers.
 
 | Event | Data |
 |---|---|

@@ -1,6 +1,6 @@
 # 02 — Conversation engine
 
-The engine runs in the FastAPI backend (`apps/backend`). Each user message goes through a fixed pipeline. Only the tracker and the guide are model calls; the director is plain code.
+The engine lives in `lib/engine/` of the Next.js app and runs in its route handlers (`08-architecture.md`). Each user message goes through a fixed pipeline. Only the tracker and the guide are model calls; the director is plain code.
 
 ## Per-turn pipeline
 
@@ -37,7 +37,7 @@ Input: recent messages, the points currently `raised`, and the available points.
 }
 ```
 
-Output is validated against the schema. Invalid output → retry once → fall back to "no state change" (never crash the turn). This replaces `json.loads` on free text in the current `services/phase.py`.
+The schema is a Zod schema in `lib/schemas/`, enforced through schema-constrained output. Invalid output → retry once → fall back to "no state change" (never crash the turn). This replaces `json.loads` on free text in the old `services/phase.py`.
 
 ### 3. Director
 Deterministic code. Given point states, signals, safety result and turn counters, it chooses:
@@ -84,11 +84,11 @@ When distress or self-harm signals appear, the guide drops the dawah goal: it re
 
 ## Models
 
-All model access goes through **OpenRouter** (one OpenAI-compatible client, model per role in config), except where noted.
+All model access goes through **OpenRouter**, via the Vercel AI SDK and the OpenRouter provider. The model per role is set in config.
 
 | Role | Candidate | Notes |
 |---|---|---|
-| Tracker | **Jev** (TypeSafe) | Schema-constrained "decision" model for classification/routing, low latency, cheap. Early access, vendor-only benchmarks, Dutch performance unknown, its own API. **Fallback:** a structured-output model via OpenRouter behind the same interface |
+| Tracker | **Jev** (TypeSafe) | Schema-constrained "decision" model for classification/routing, low latency, cheap. On OpenRouter in beta (`typesafe/jev-latest`). Vendor-only benchmarks, Dutch performance unknown. **Fallback:** a structured-output model via OpenRouter behind the same interface |
 | Guide | Strong instruction-following model via OpenRouter | Pick through evals (`09-evals.md`) on Dutch, tone and rule-following |
 | Safety | Llama Guard 4 or Qwen3Guard | Plus the session-level risk score |
 | Embeddings | Via OpenRouter's embeddings endpoint | OPEN (T16): choose before writing migrations; the vector column size depends on it |
@@ -96,18 +96,18 @@ All model access goes through **OpenRouter** (one OpenAI-compatible client, mode
 The model per role must be switchable by config only. No multi-provider factory: OpenRouter is the factory.
 
 ## Latency budget
-Target: first guide token within 2.5 s at p50. Safety check and tracker run in parallel; the embedding is computed once. The guide streams via SSE.
+Target: first guide token within 2.5 s at p50. Safety check and tracker run in parallel; the embedding is computed once. The guide streams to the browser (AI SDK streaming response).
 
 ## API
 
 | Endpoint | Purpose |
 |---|---|
-| `POST /conversations` | Start a conversation (entry point, optional landing context). Returns the id |
-| `POST /conversations/{id}/messages` | Send a user message. Response: SSE stream of guide tokens, then a final event with state (stage, scene trigger, completed points) |
-| `GET /conversations/{id}` | History and current state, for resuming |
-| `GET /health` | Existing |
+| `POST /api/conversations` | Start a conversation (entry point, optional landing context). Returns the id |
+| `POST /api/conversations/[id]/messages` | Send a user message. Response: a stream of guide tokens, then a final event with state (stage, scene trigger, completed points) |
+| `GET /api/conversations/[id]` | History and current state, for resuming |
+| `GET /api/health` | Health check for Railway |
 
-Auth: Supabase JWT (anonymous or registered user), checked in the backend. The existing `/query` endpoint is replaced.
+Auth: Supabase JWT (anonymous or registered user), checked in the route handler. Request and response bodies are Zod schemas shared with the client. The old backend's `/query` endpoint is replaced.
 
 ## Acceptance criteria
 - An invalid tracker response never breaks a turn.
