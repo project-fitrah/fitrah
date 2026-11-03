@@ -37,9 +37,11 @@ Browser ──► Next.js app (Railway) ──► OpenRouter (guide, tracker/Jev
 - **Railway** project `heroic-stillness` (workspace "project-fitrah's Projects"), one `production` environment in `europe-west4`, two services deploying from `main`:
   - `Frontend`: last deploy 2026-07-01, sleeping.
   - `Backend`: every deploy fails because its config points to `/railway.toml`, which was deleted in July.
-- M0 replaces both services with one service for the single app (root directory `/`, health check `/api/health`), and a dev/preview environment next to `production`.
+- M0 replaces both services (approved) with one service for the single app (root directory `/`, health check `/api/health`), and a dev/preview environment next to `production`.
 
-OPEN (T1): is this Supabase project dev or prod, and did the admin ever use another project? Recommendation: make this one **dev** (it holds nothing worth keeping) and create a separate **prod** project, in the EU, before real users arrive.
+**Decided (T1):** this project is **dev**; its tables are dropped and rebuilt from migrations in M0. A separate **prod** project, in the EU, is created before real users arrive (M7).
+
+**Railway plan (T2):** the free trial has ended, so services won't run until the workspace is on a paid plan. The Hobby plan is about $5/month, which includes $5 of usage (check railway.com/pricing). Needed before the M0 deploy.
 
 ## Repository layout
 ```
@@ -85,7 +87,7 @@ All tables are created through migrations in `supabase/migrations/`, with RLS on
 
 The current backend tables (`phases`, `phase_requirements`, `behavior_examples`, `documents`, `conversations`, `messages`) and the RPCs `match_documents` and `match_behavior_examples` exist only in a Supabase project, not in migrations. They are replaced by the schema above; nothing from them needs to be kept apart from the seed content in `apps/backend/seed.py`.
 
-OPEN (T16): the embedding model fixes the vector column size; choose it before writing the migrations. Recommendation: `google/gemini-embedding-001` via OpenRouter (multilingual, its output can be shortened), stored at **1536 dimensions**. pgvector's HNSW index supports at most 2000 dimensions for `vector`, so the default 3072 won't index. Check it on a small Dutch retrieval set in M2. The KB is small, so switching later only means re-embedding.
+**Embeddings (decided, T16):** `google/gemini-embedding-001` via OpenRouter, stored at **1536 dimensions** (pgvector's HNSW index supports at most 2000 for `vector`, so the default 3072 won't index). Check it on a small Dutch retrieval set in M2. The KB is small, so switching later only means re-embedding.
 
 ## Model access
 - Everything goes through OpenRouter with one API key, including **Jev** (listed on OpenRouter in beta as `typesafe/jev-latest`). The model per role is set in config (`02-engine.md`).

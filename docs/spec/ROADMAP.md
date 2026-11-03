@@ -29,7 +29,7 @@ Status values: `not started`, `in progress`, `in review`, `done`.
 - Railway: replace the `Frontend` and `Backend` services with one service for the single app (root `/`, health check `/api/health`); add a dev environment.
 
 Done when: `supabase db reset` and `pnpm dev` give a working site and admin locally; `pnpm lint && pnpm typecheck && pnpm test` pass in CI; the app is live on Railway.
-Needs first: T16 (embedding model), T1 (Supabase dev/prod), T2 (Railway).
+Needs first: T2 (Railway paid plan) for the deploy step; everything else can start.
 
 ## M1 — Capture one stage of the imam's structure
 - Workshop with the imam and recordings (`03-knowledge-base.md`).
@@ -71,15 +71,23 @@ Done when: drop-off per point and agreement rate per answer are visible.
 Done when: completing a stage moves the user to the next place on desktop and mid-range mobile.
 
 ## M7 — Beta and reach
+- Create the EU prod Supabase project.
 - Closed beta through the imam's network; review conversations together with the imam.
 - Expand to further stages; reach plan (C13).
+
+## Decided
+| # | Decision | Date |
+|---|---|---|
+| T1 | Current Supabase project (`dotcysplrumgqhmnmeqk`) is dev; EU prod project before the beta | 2026-11-03 |
+| T14 | LLM access through OpenRouter only; `llm-provider` factory dropped | 2026-10-30 |
+| T16 | Embeddings: `google/gemini-embedding-001`, 1536 dimensions | 2026-11-03 |
+| — | Stack: one TypeScript Next.js app; FastAPI backend removed (team agreed) | 2026-11-03 |
+| — | Railway: replace `Frontend` and `Backend` with one service | 2026-11-03 |
 
 ## Open decisions, in priority order
 | # | Decision | Blocks | Spec |
 |---|---|---|---|
-| T16 | Embedding model | M0 | `08`, `02` |
-| T1 | Supabase: current project as dev, new EU prod project? | M0 | `08` |
-| T2 | Railway: OK to replace both services; who owns the workspace and billing | M0 | `08` |
+| T2 | Railway: add a paid plan (trial ended) | M0 deploy | `08` |
 | C1 | The imam's structure (points, dependencies) | M1 | `01`, `03` |
 | C2 | What counts as agreement | M1 | `01` |
 | C3 | Handling firm disagreement | M1 | `01` |

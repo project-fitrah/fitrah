@@ -91,7 +91,7 @@ All model access goes through **OpenRouter**, via the Vercel AI SDK and the Open
 | Tracker | **Jev** (TypeSafe) | Schema-constrained "decision" model for classification/routing, low latency, cheap. On OpenRouter in beta (`typesafe/jev-latest`). Vendor-only benchmarks, Dutch performance unknown. **Fallback:** a structured-output model via OpenRouter behind the same interface |
 | Guide | Strong instruction-following model via OpenRouter | Pick through evals (`09-evals.md`) on Dutch, tone and rule-following |
 | Safety | Llama Guard 4 or Qwen3Guard | Plus the session-level risk score |
-| Embeddings | Via OpenRouter's embeddings endpoint | OPEN (T16): choose before writing migrations; the vector column size depends on it |
+| Embeddings | `google/gemini-embedding-001` via OpenRouter, 1536 dimensions | Decided (T16); see `08-architecture.md` |
 
 The model per role must be switchable by config only. No multi-provider factory: OpenRouter is the factory.
 
