@@ -2,6 +2,22 @@
 
 The engine is the product, so it comes first. 3D comes deliberately late. Each milestone has acceptance criteria; the referenced spec files hold the details.
 
+## Status
+Claim a milestone or task here before starting it (see `AGENTS.md`, "Working together").
+
+| Milestone | Status | Owner | Branch |
+|---|---|---|---|
+| M0 One app, one language | not started | — | — |
+| M1 Capture one stage | not started | — | — |
+| M2 Text-only engine and evals | not started | — | — |
+| M3 Web chat and accounts | not started | — | — |
+| M4 Admin content tools | not started | — | — |
+| M5 Analytics and learning loop | not started | — | — |
+| M6 3D story layer | not started | — | — |
+| M7 Beta and reach | not started | — | — |
+
+Status values: `not started`, `in progress`, `in review`, `done`.
+
 ## M0 — One app, one language
 - Delete the stale branches (`RAG`, `dashboard`, `dev`, `llm-provider`) and close PR #6.
 - Merge `apps/web` and `apps/admin` into one Next.js app at the repo root; admin under `/admin` behind a role check; one set of Supabase helpers. Remove Turbo and `packages/config` if nothing else uses it.
@@ -9,11 +25,11 @@ The engine is the product, so it comes first. 3D comes deliberately late. Each m
 - Supabase CLI: `supabase/` with migrations (starting with the existing `recordings` table), local dev, generated types.
 - Model access: Vercel AI SDK with the OpenRouter provider; model per role in config.
 - Tooling: Vitest, Playwright, GitHub Actions (lint, typecheck, test).
-- Docs: a short `AGENTS.md` pointing to `docs/spec`, `CLAUDE.md` importing it; update the README; remove `.cursor/rules` unless the team uses Cursor.
-- Railway deploy of the single app, with `/api/health`.
+- Docs: update the "Current state" and "Commands" sections of `AGENTS.md` and the README for the new layout.
+- Railway: replace the `Frontend` and `Backend` services with one service for the single app (root `/`, health check `/api/health`); add a dev environment.
 
 Done when: `supabase db reset` and `pnpm dev` give a working site and admin locally; `pnpm lint && pnpm typecheck && pnpm test` pass in CI; the app is live on Railway.
-Needs first: T16 (embedding model), T1 (which Supabase project), T2 (confirm Railway).
+Needs first: T16 (embedding model), T1 (Supabase dev/prod), T2 (Railway).
 
 ## M1 — Capture one stage of the imam's structure
 - Workshop with the imam and recordings (`03-knowledge-base.md`).
@@ -62,8 +78,8 @@ Done when: completing a stage moves the user to the next place on desktop and mi
 | # | Decision | Blocks | Spec |
 |---|---|---|---|
 | T16 | Embedding model | M0 | `08`, `02` |
-| T1 | Real Supabase project, dev/prod split | M0 | `08` |
-| T2 | Confirm Railway; preview environments | M0 | `08` |
+| T1 | Supabase: current project as dev, new EU prod project? | M0 | `08` |
+| T2 | Railway: OK to replace both services; who owns the workspace and billing | M0 | `08` |
 | C1 | The imam's structure (points, dependencies) | M1 | `01`, `03` |
 | C2 | What counts as agreement | M1 | `01` |
 | C3 | Handling firm disagreement | M1 | `01` |

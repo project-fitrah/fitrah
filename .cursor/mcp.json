@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "supabase": {
+      "url": "https://mcp.supabase.com/mcp?project_ref=dotcysplrumgqhmnmeqk&read_only=true"
+    },
+    "railway": {
+      "url": "https://mcp.railway.com"
+    }
+  }
+}
